@@ -57,6 +57,17 @@ jobs:
           echo -e "\n## ${{ github.ref_name }}\n\n$SUMMARY" >> README.md
           cat README.md
 
+      - name: README.md の変更をコミット & プッシュ
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add README.md
+          git commit -m "Update README with release notes for ${{ github.ref_name }}" || exit 0
+          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
+
       - name: 既存タグを削除して再作成プッシュ
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
