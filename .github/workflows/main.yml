@@ -64,10 +64,15 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
+          # 最新の状態を取得して競合を防ぐ
+          git fetch --tags --force
+          git pull --rebase origin main || true
+
           git add README.md
           git commit -m "Update README with release notes for ${{ github.ref_name }}" || exit 0
 
-          # 既存のタグがあっても安全に上書き
-          git push --force-with-lease https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git HEAD:refs/tags/${{ github.ref_name }}
+          # 既存のタグを上書きせず安全にプッシュ
+          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git HEAD:main
+
 
 
