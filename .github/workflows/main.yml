@@ -67,25 +67,3 @@ jobs:
           git add README.md
           git commit -m "Update README with release notes for ${{ github.ref_name }}" || exit 0
           git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
-
-      - name: 既存タグを削除して再作成プッシュ
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-
-          # 最新のリモートタグを取得し、ローカルと同期
-          git fetch --tags --force
-
-          # ローカルのタグを削除 (存在する場合)
-          git tag -d ${{ github.ref_name }} || true
-
-          # リモートのタグを削除 (存在する場合)
-          git push --delete https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref_name }} || true
-
-          # ローカルのタグを再作成
-          git tag -a ${{ github.ref_name }} -m "Updated version tag"
-
-          # リモートのタグを強制的に更新
-          git push --force https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref_name }}
