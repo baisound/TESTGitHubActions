@@ -1,0 +1,53 @@
+name: Update README with Version Changes
+
+on:
+  push:
+    tags:
+      - "v*.*.*"  # `vX.Y.Z` のタグが付いたブランチをトリガー
+
+jobs:
+  update_readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: チェックアウトリポジトリ
+        uses: actions/checkout@v4
+
+      - name: 最新のコミット情報を取得
+        id: get_commit
+        run: |
+          LATEST_COMMIT=$(git log -1 --pretty=format:"%s%n%n%b")
+          echo "$LATEST_COMMIT" > commit_message.txt
+          echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
+          cat commit_message.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: ChatGPT API で要約・最適化
+        id: optimize_commit
+        run: |
+          RESPONSE=$(curl -s -X POST "https://api.openai.com/v1/chat/completions" \
+          -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "model": "gpt-4",
+            "messages": [
+              {"role": "system", "content": "You are an expert in summarizing Git commit messages for release notes."},
+              {"role": "user", "content": "Summarize and optimize the following commit message into a concise changelog:\n\n${{ env.COMMIT_MESSAGE }}"}
+            ],
+            "max_tokens": 200
+          }')
+
+          echo "OPTIMIZED_SUMMARY=$(echo $RESPONSE | jq -r '.choices[0].message.content')" >> $GITHUB_ENV
+
+      - name: `README.md` にバージョン情報を追加
+        run: |
+          echo -e "\n## ${{ github.ref_name }}\n\n${{ env.OPTIMIZED_SUMMARY }}\n" >> README.md
+          cat README.md
+
+      - name: 更新を GitHub にプッシュ
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add README.md
+          git commit -m "Update README with release notes for ${{ github.ref_name }}"
+          git push origin ${{ github.ref_name }}
