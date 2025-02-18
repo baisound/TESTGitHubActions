@@ -1,1 +1,3 @@
 既存タグバッティングでワークフローエラー発生の修正
+2. GitHub Actions のワークフローを修正
+GitHub Actions の .github/workflows/main.yml で タグの削除 → 再作成 → プッシュ の手順を正しく行う。
