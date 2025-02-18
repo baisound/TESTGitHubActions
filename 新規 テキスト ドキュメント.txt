@@ -1,3 +1,7 @@
 既存タグバッティングでワークフローエラー発生の修正
 2. GitHub Actions のワークフローを修正
 GitHub Actions の .github/workflows/main.yml で タグの削除 → 再作成 → プッシュ の手順を正しく行う。
+修正ポイント
+問題	修正内容
+Git コミット時に user.name と user.email が設定されていない	git config --local user.name "github-actions[bot]" を追加
+タグの作成前に user を適切に設定	git config --local user.email "github-actions[bot]@users.noreply.github.com" を追加
