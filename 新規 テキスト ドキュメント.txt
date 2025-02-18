@@ -25,3 +25,5 @@ GITHUB_ENV は 1行のみ許容 (key=value) なのに、複数行の値を保存
 API レスポンス (content) の \n (改行) 問題	tr '\n' ' ' で改行を削除
 
 テスト
+
+テスト
