@@ -25,19 +25,24 @@ jobs:
       - name: ChatGPT API で要約・最適化
         id: optimize_commit
         run: |
+          COMMIT_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE }}" | jq -Rs .)
+
           RESPONSE=$(curl -s -X POST "https://api.openai.com/v1/chat/completions" \
           -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
           -H "Content-Type: application/json" \
-          -d '{
-            "model": "gpt-4",
-            "messages": [
-              {"role": "system", "content": "You are an expert in summarizing Git commit messages for release notes."},
-              {"role": "user", "content": "Summarize and optimize the following commit message into a concise changelog:\n\n${{ env.COMMIT_MESSAGE }}"}
-            ],
-            "max_tokens": 200
-          }')
+          --data-binary @- <<EOF
+{
+  "model": "gpt-4",
+  "messages": [
+    {"role": "system", "content": "You are an expert in summarizing Git commit messages for release notes."},
+    {"role": "user", "content": "Summarize and optimize the following commit message into a concise changelog:\n\n$COMMIT_MESSAGE"}
+  ],
+  "max_tokens": 200
+}
+EOF
+          )
 
-          echo "OPTIMIZED_SUMMARY=$(echo $RESPONSE | jq -r '.choices[0].message.content')" >> $GITHUB_ENV
+          echo "OPTIMIZED_SUMMARY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')" >> $GITHUB_ENV
 
       - name: `README.md` にバージョン情報を追加
         run: |
