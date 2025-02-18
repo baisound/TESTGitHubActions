@@ -25,7 +25,7 @@ jobs:
       - name: ChatGPT API で要約・最適化
         id: optimize_commit
         run: |
-          COMMIT_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE }}" | jq -Rs .)
+          COMMIT_MESSAGE=$(jq -Rs . <<< "${{ env.COMMIT_MESSAGE }}")
 
           RESPONSE=$(curl -s -X POST "https://api.openai.com/v1/chat/completions" \
           -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
@@ -35,7 +35,7 @@ jobs:
   "model": "gpt-4",
   "messages": [
     {"role": "system", "content": "You are an expert in summarizing Git commit messages for release notes."},
-    {"role": "user", "content": "Summarize and optimize the following commit message into a concise changelog:\n\n$COMMIT_MESSAGE"}
+    {"role": "user", "content": "Summarize and optimize the following commit message into a concise changelog:\n\n${COMMIT_MESSAGE}"}
   ],
   "max_tokens": 200
 }
