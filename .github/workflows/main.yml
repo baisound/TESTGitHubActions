@@ -21,6 +21,30 @@ jobs:
           echo "COMMIT_MESSAGE<<EOF" >> $GITHUB_ENV
           cat commit_message.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: ChatGPT API で要約・最適化
+        id: optimize_commit
+        run: |
+          COMMIT_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE }}" | jq -Rs .)
+
+          JSON_PAYLOAD=$(jq -n \
+            --arg model "gpt-4" \
+            --arg system "You are an expert in summarizing Git commit messages for release notes." \
+            --arg user "Summarize and optimize the following commit message into a concise changelog:\n\n$COMMIT_MESSAGE" \
+            '{model: $model, messages: [{role: "system", content: $system}, {role: "user", content: $user}], max_tokens: 200}')
+
+          RESPONSE=$(echo "$JSON_PAYLOAD" | curl -s -X POST "https://api.openai.com/v1/chat/completions" \
+            -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --data @-)
+
+          # APIレスポンスをデバッグ
+          echo "API RESPONSE: $RESPONSE"
+
+          # ChatGPTのレスポンスから `\n` を削除し、1行に変換
+          OPTIMIZED_SUMMARY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "ERROR: No content received"' | tr '\n' ' ')
+
+          echo "OPTIMIZED_SUMMARY=$OPTIMIZED_SUMMARY" >> $GITHUB_ENV
   
       - name: README.md にバージョン情報を追加
         run: |
@@ -39,8 +63,17 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
+          # 最新のリモートタグを取得し、ローカルと同期
+          git fetch --tags --force
+
+          # ローカルのタグを削除 (存在する場合)
           git tag -d ${{ github.ref_name }} || true
+
+          # リモートのタグを削除 (存在する場合)
           git push --delete https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref_name }} || true
 
+          # ローカルのタグを再作成
           git tag -a ${{ github.ref_name }} -m "Updated version tag"
-          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref_name }}
+
+          # リモートのタグを強制的に更新
+          git push --force https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref_name }}
