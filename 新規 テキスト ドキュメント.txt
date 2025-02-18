@@ -12,3 +12,10 @@ README.md に null や No content received が入る	if 文で SUMMARY の値を
 
 ChatGPT のレスポンス (content) に \n (改行) が含まれている	tr '\n' ' ' を使って 1行に変換
 GITHUB_ENV は 1行のみ許容 (key=value) なのに、複数行の値を保存しようとしている	jq -r の出力を tr で修正
+
+
+問題	修正方法
+リモートのタグとローカルのタグが競合 (would clobber existing tag)	git fetch --tags --force で最新のタグを取得
+ローカルの古いタグを適切に削除していない	`git tag -d ${{ github.ref_name }}
+リモートのタグを削除した後、再作成する前に正しく同期していない	git push --delete の後 git fetch --tags --force を実行
+リモートタグの更新時に競合する可能性がある	git push --force でリモートタグを強制上書き
