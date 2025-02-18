@@ -9,3 +9,6 @@ Git コミット時に user.name と user.email が設定されていない	git 
 ChatGPT API からのレスポンスが invalid_request_error	jq -n --arg を使って JSON を適切に生成
 API のレスポンス (OPTIMIZED_SUMMARY) が null	echo "API RESPONSE: $RESPONSE" でデバッグし、デフォルト値を設定
 README.md に null や No content received が入る	if 文で SUMMARY の値を適切に処理
+
+ChatGPT のレスポンス (content) に \n (改行) が含まれている	tr '\n' ' ' を使って 1行に変換
+GITHUB_ENV は 1行のみ許容 (key=value) なのに、複数行の値を保存しようとしている	jq -r の出力を tr で修正
