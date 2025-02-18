@@ -34,10 +34,10 @@ jobs:
             --arg user "Summarize and optimize the following commit message into a concise changelog:\n\n$COMMIT_MESSAGE" \
             '{model: $model, messages: [{role: "system", content: $system}, {role: "user", content: $user}], max_tokens: 200}')
 
-          RESPONSE=$(echo "$JSON_PAYLOAD" | curl -s -X POST "https://api.openai.com/v1/chat/completions" \
+          RESPONSE=$(curl -s -X POST "https://api.openai.com/v1/chat/completions" \
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
             -H "Content-Type: application/json" \
-            --data @-)
+            --data "$JSON_PAYLOAD")
 
           # APIレスポンスをデバッグ
           echo "API RESPONSE: $RESPONSE"
