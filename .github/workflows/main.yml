@@ -57,10 +57,11 @@ jobs:
           echo -e "\n## ${{ github.ref_name }}\n\n${{ env.OPTIMIZED_SUMMARY }}" >> README.md
           cat README.md
 
-      - name: 更新を GitHub にプッシュ
+      - name: 既存タグを削除して再作成プッシュ
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add README.md
-          git commit -m "Update README with release notes for ${{ github.ref_name }}"
-          git push origin ${{ github.ref_name }}
+          git tag -d ${{ github.ref_name }} || true
+          git push --delete https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git ${{ github.ref_name }} || true
+          git tag ${{ github.ref_name }}
+          git push https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git HEAD:${{ github.ref_name }}
