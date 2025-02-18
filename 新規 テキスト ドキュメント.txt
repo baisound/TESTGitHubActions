@@ -5,3 +5,7 @@ GitHub Actions の .github/workflows/main.yml で タグの削除 → 再作成 
 問題	修正内容
 Git コミット時に user.name と user.email が設定されていない	git config --local user.name "github-actions[bot]" を追加
 タグの作成前に user を適切に設定	git config --local user.email "github-actions[bot]@users.noreply.github.com" を追加
+
+ChatGPT API からのレスポンスが invalid_request_error	jq -n --arg を使って JSON を適切に生成
+API のレスポンス (OPTIMIZED_SUMMARY) が null	echo "API RESPONSE: $RESPONSE" でデバッグし、デフォルト値を設定
+README.md に null や No content received が入る	if 文で SUMMARY の値を適切に処理
