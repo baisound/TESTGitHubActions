@@ -19,3 +19,9 @@ GITHUB_ENV は 1行のみ許容 (key=value) なのに、複数行の値を保存
 ローカルの古いタグを適切に削除していない	`git tag -d ${{ github.ref_name }}
 リモートのタグを削除した後、再作成する前に正しく同期していない	git push --delete の後 git fetch --tags --force を実行
 リモートタグの更新時に競合する可能性がある	git push --force でリモートタグを強制上書き
+
+バッククォート (```) の誤り	JSON_PAYLOAD=$(jq -n \ ... ) の \`` を削除し、 jq -n` を明確に指定
+シェルスクリプトの " のバランスミス	$COMMIT_MESSAGE の扱いを jq --arg で適切に処理
+API レスポンス (content) の \n (改行) 問題	tr '\n' ' ' で改行を削除
+
+テスト
