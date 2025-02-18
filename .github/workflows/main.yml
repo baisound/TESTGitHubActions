@@ -50,11 +50,22 @@ jobs:
             -H "Content-Type: application/json" \
             --data @-)
 
-          echo "OPTIMIZED_SUMMARY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')" >> $GITHUB_ENV
+          # APIレスポンスをログに出力 (デバッグ)
+          echo "API RESPONSE: $RESPONSE"
+
+          # ChatGPTのレスポンスがnullだった場合、デフォルト値を設定
+          OPTIMIZED_SUMMARY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "ERROR: No content received"')
+
+          echo "OPTIMIZED_SUMMARY=$OPTIMIZED_SUMMARY" >> $GITHUB_ENV
   
       - name: README.md にバージョン情報を追加
         run: |
-          echo -e "\n## ${{ github.ref_name }}\n\n${{ env.OPTIMIZED_SUMMARY }}" >> README.md
+          SUMMARY=${{ env.OPTIMIZED_SUMMARY }}
+          if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
+            SUMMARY="No summary generated"
+          fi
+
+          echo -e "\n## ${{ github.ref_name }}\n\n$SUMMARY" >> README.md
           cat README.md
 
       - name: 既存タグを削除して再作成プッシュ
