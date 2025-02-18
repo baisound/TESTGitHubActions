@@ -27,29 +27,31 @@ jobs:
         run: |
           COMMIT_MESSAGE=$(echo "${{ env.COMMIT_MESSAGE }}" | jq -Rs .)
 
-          RESPONSE=$(curl -s -X POST "https://api.openai.com/v1/chat/completions" \
-            -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            --data-binary @- <<EOF
-{
-  "model": "gpt-4",
-  "messages": [
-    {
-      "role": "system",
-      "content": "You are an expert in summarizing Git commit messages for release notes."
-    },
-    {
-      "role": "user",
-      "content": "Summarize and optimize the following commit message into a concise changelog:\n\n${COMMIT_MESSAGE}"
-    }
-  ],
-  "max_tokens": 200
-}
-EOF
+          JSON_PAYLOAD=$(cat <<EOF
+          {
+            "model": "gpt-4",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are an expert in summarizing Git commit messages for release notes."
+              },
+              {
+                "role": "user",
+                "content": "Summarize and optimize the following commit message into a concise changelog:\n\n$COMMIT_MESSAGE"
+              }
+            ],
+            "max_tokens": 200
+          }
+          EOF
           )
 
-          echo "OPTIMIZED_SUMMARY=$(echo \"$RESPONSE\" | jq -r '.choices[0].message.content')" >> $GITHUB_ENV
+          RESPONSE=$(echo "$JSON_PAYLOAD" | curl -s -X POST "https://api.openai.com/v1/chat/completions" \
+            -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            --data @-)
 
+          echo "OPTIMIZED_SUMMARY=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')" >> $GITHUB_ENV
+  
       - name: `README.md` にバージョン情報を追加
         run: |
           echo -e "\n## ${{ github.ref_name }}\n\n${{ env.OPTIMIZED_SUMMARY }}\n" >> README.md
